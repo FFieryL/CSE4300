@@ -1,0 +1,4 @@
+
+testreverse.o: \
+ testreverse.c
+
