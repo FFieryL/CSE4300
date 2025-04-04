@@ -113,9 +113,9 @@ lock_create(const char *name)
 		kfree(lock);
 		return NULL;
 	}
-	
+	lock->mythread = NULL;
 	// add stuff here as needed
-	
+
 	return lock;
 }
 
@@ -123,18 +123,27 @@ void
 lock_destroy(struct lock *lock)
 {
 	assert(lock != NULL);
-
+	int spl = splhigh();
+	assert(thread_hassleepers(lock) == 0);
 	// add stuff here as needed
 	
 	kfree(lock->name);
 	kfree(lock);
+	splx(spl);
 }
 
 void
 lock_acquire(struct lock *lock)
 {
 	// Write this
-
+	assert(lock != NULL)
+	if(lock_do_i_hold(lock)) return;
+	int spl = splhigh();
+	while(lock->mythread != NULL){
+		thread_sleep(lock);
+	}
+	lock->mythread = curthread;
+	splx(spl);
 	(void)lock;  // suppress warning until code gets written
 }
 
@@ -142,7 +151,12 @@ void
 lock_release(struct lock *lock)
 {
 	// Write this
-
+	int spl = splhigh();
+	if(lock_do_i_hold(lock)){
+		lock->mythread = NULL;
+		thread_wakeup(lock);
+	}
+	splx(spl);
 	(void)lock;  // suppress warning until code gets written
 }
 
@@ -150,10 +164,9 @@ int
 lock_do_i_hold(struct lock *lock)
 {
 	// Write this
-
+	return (lock->mythread == curthread);
 	(void)lock;  // suppress warning until code gets written
 
-	return 1;    // dummy until code gets written
 }
 
 ////////////////////////////////////////////////////////////
@@ -197,6 +210,13 @@ void
 cv_wait(struct cv *cv, struct lock *lock)
 {
 	// Write this
+	int spl = splhigh();
+	if(lock_do_i_hold(lock)){
+		lock_release(lock);
+		thread_sleep(cv);
+		lock_acquire(lock);
+	}
+	splx(spl);
 	(void)cv;    // suppress warning until code gets written
 	(void)lock;  // suppress warning until code gets written
 }
@@ -205,6 +225,9 @@ void
 cv_signal(struct cv *cv, struct lock *lock)
 {
 	// Write this
+	int spl = splhigh();
+	thread_wakeup_single(cv);
+	splx(spl);
 	(void)cv;    // suppress warning until code gets written
 	(void)lock;  // suppress warning until code gets written
 }
@@ -213,6 +236,10 @@ void
 cv_broadcast(struct cv *cv, struct lock *lock)
 {
 	// Write this
+	int spl = splhigh();
+
+	thread_wakeup(cv);
+	splx(spl);
 	(void)cv;    // suppress warning until code gets written
 	(void)lock;  // suppress warning until code gets written
 }

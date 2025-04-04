@@ -122,7 +122,9 @@ time_t __time(time_t *seconds, unsigned long *nanoseconds);
 int __getcwd(char *buf, size_t buflen);
 /* stat - see sys/stat.h */
 /* lstat - see sys/stat.h */
-
+int printint(int c);
+int reversestring(const char *str, int len);
+void _exit(int code);
 /*
  * These are not themselves system calls, but wrapper routines in libc.
  */
