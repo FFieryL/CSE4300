@@ -7,7 +7,8 @@ u_int32_t firstfree;   /* first free virtual address; set by start.S */
 
 static u_int32_t firstpaddr;  /* address of first free physical page */
 static u_int32_t lastpaddr;   /* one past end of last free physical page */
-
+static u_int32_t total_pages = 0;
+static u_int32_t used_pages = 0;
 /*
  * Called very early in system boot to figure out how much physical
  * RAM is available.
@@ -38,6 +39,8 @@ ram_bootstrap(void)
 	 * Convert to physical address.
 	 */
 	firstpaddr = firstfree - MIPS_KSEG0;
+
+	total_pages = (lastpaddr - firstpaddr) / PAGE_SIZE;
 
 	kprintf("Cpu is MIPS r2000/r3000\n");
 	kprintf("%uk physical memory available\n", 
@@ -73,6 +76,8 @@ ram_stealmem(unsigned long npages)
 	paddr = firstpaddr;
 	firstpaddr += size;
 
+	used_pages += npages;
+
 	return paddr;
 }
 
@@ -88,3 +93,15 @@ ram_getsize(u_int32_t *lo, u_int32_t *hi)
 	*hi = lastpaddr;
 	firstpaddr = lastpaddr = 0;
 }
+u_int32_t
+ram_get_total_pages(void)
+{
+    return total_pages;
+}
+
+u_int32_t
+ram_get_used_pages(void)
+{
+    return used_pages;
+}
+

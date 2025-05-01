@@ -69,7 +69,8 @@
 void ram_bootstrap(void);
 paddr_t ram_stealmem(unsigned long npages);
 void ram_getsize(paddr_t *lo, paddr_t *hi);
-
+u_int32_t ram_get_total_pages(void);
+u_int32_t ram_get_used_pages(void);
 /*
  * The ELF executable type for this platform.
  */
